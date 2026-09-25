@@ -1,5 +1,5 @@
 --[[
-                          Neverlose.cc UI Library
+                          ahNeverlose.cc UI Library
     Author: 4lpaca
 	License: MIT
     Discord: https://arceney.win/discord
@@ -4848,7 +4848,7 @@ function NeverLose:CreateWindow(Config)
 		UIListLayout.Padding = UDim.new(0, 5)
 
 		NeverLose:AddSignal(UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(LPH_NO_VIRTUALIZE(function()
-			LeftScroll.CanvasSize = UDim2.fromOffset(0,UIListLayout.AbsoluteContentSize.Y + 1)
+			LeftScroll.CanvasSize = UDim2.fromOffset(0,(UIListLayout.AbsoluteContentSize.Y / math.max(ResponsiveScale.Scale, 0.001)) + 1)
 		end)))
 
 		RightScroll.Name = NeverLose.RandomString();
@@ -4877,7 +4877,7 @@ function NeverLose:CreateWindow(Config)
 			LeftScroll.Position = UDim2.new(0.5, 0, 0.5, 0)
 		else
 			NeverLose:AddSignal(UIListLayout_2:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(LPH_NO_VIRTUALIZE(function()
-				RightScroll.CanvasSize = UDim2.fromOffset(0,UIListLayout_2.AbsoluteContentSize.Y + 1)
+				RightScroll.CanvasSize = UDim2.fromOffset(0,(UIListLayout_2.AbsoluteContentSize.Y / math.max(ResponsiveScale.Scale, 0.001)) + 1)
 			end)))
 		end;
 
@@ -5066,7 +5066,7 @@ function NeverLose:CreateWindow(Config)
 					})
 				else
 					NeverLose.PlayAnimate(SectionFrame , VSlowTween , {
-						Size = UDim2.new(1, -5, 0, UIListLayout.AbsoluteContentSize.Y + 19.5)
+						Size = UDim2.new(1, -5, 0, (UIListLayout.AbsoluteContentSize.Y / math.max(ResponsiveScale.Scale, 0.001)) + 19.5)
 					})
 				end;
 			end));
