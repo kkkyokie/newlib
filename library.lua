@@ -1,5 +1,5 @@
 --[[
-                          Neverlose.cc UI Library
+                          nahNeverlose.cc UI Library
     Author: 4lpaca
 	License: MIT
     Discord: https://arceney.win/discord
@@ -251,6 +251,9 @@ end;
 
 -- ============================================================
 --  PROPORTIONAL UI SCALING
+--  Keeps the design at 640x480 logical units but scales the
+--  whole ScreenGui (sidebar + content + fonts) to fit the
+--  current viewport. Re-runs on rotation / window resize.
 -- ============================================================
 NeverLose.DesignSize = Vector2.new(640, 480);
 NeverLose.UIScale = Instance.new("UIScale");
@@ -263,8 +266,10 @@ local UpdateUIScale = LPH_NO_VIRTUALIZE(function()
 	local scaleX = vp.X / NeverLose.DesignSize.X;
 	local scaleY = vp.Y / NeverLose.DesignSize.Y;
 
+	-- Fit with a small padding so the window never touches the screen edge
 	local scale = math.min(scaleX, scaleY) * 0.92;
 
+	-- Clamp so it stays readable on tiny screens and doesn't get huge on 4K
 	scale = math.clamp(scale, 0.32, 1.60);
 
 	NeverLose.UIScale.Scale = scale;
@@ -276,16 +281,35 @@ NeverLose:AddSignal(workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSi
 	UpdateUIScale();
 end)));
 
+-- Also update when UserInputService detects device changes / rotation
 NeverLose:AddSignal(UserInputService:GetPropertyChangedSignal("TouchEnabled"):Connect(LPH_NO_VIRTUALIZE(function()
 	UpdateUIScale();
 end)));
 -- ============================================================
-
-function NeverLose:AddQuery(ItemRoot: Frame , Name : string)
-	table.insert(NeverLose.NameRegisitry , {
+function NeverLose:AddQuery(ItemRoot: Frame, Name: string)
+	local Entry = {
 		Root = ItemRoot,
 		Idx = Name,
-	});
+		OriginalSize = ItemRoot.Size,
+	};
+
+	table.insert(NeverLose.NameRegisitry, Entry);
+
+	ItemRoot:GetPropertyChangedSignal("Visible"):Connect(function()
+		if ItemRoot.Visible then
+			if Entry.OriginalSize then
+				ItemRoot.Size = Entry.OriginalSize;
+			end
+		else
+			Entry.OriginalSize = ItemRoot.Size;
+			ItemRoot.Size = UDim2.new(
+				ItemRoot.Size.X.Scale,
+				ItemRoot.Size.X.Offset,
+				0,
+				0
+			);
+		end
+	end);
 end;
 
 function Encryption.new(data: string)
@@ -1456,7 +1480,7 @@ function NeverLose:CreateColorPicker(HandleFrame: Frame)
 	SaViMap.Position = UDim2.new(0.5, 0, 0, 5)
 	SaViMap.Size = UDim2.new(0, 185, 0, 185)
 	SaViMap.ZIndex = ZIndex + 126
-	SaViMap.Image = NeverLose.ImageColorMapping
+	SaViMap.Image = NeverLose.ImageColorMapping -- UNSAFE IMAGE
 
 	UICorner_2.CornerRadius = UDim.new(0, 5)
 	UICorner_2.Parent = SaViMap
@@ -2042,7 +2066,7 @@ function NeverLose:RegisiterHandler(Handler: Frame , Signal)
 			local OutVal = NeverLose:ParseInput(ValueLabel.Text , true);
 			if OutVal then
 				local rx = math.clamp(OutVal , Config.Min , Config.Max);
-				local Value = NeverLose:Rounding(rx,Config.Rounding);
+				local Value = NeverLose.Rounding(rx,Config.Rounding);
 
 				if Value then
 					Config.Default = Value;
@@ -2124,7 +2148,7 @@ function NeverLose:RegisiterHandler(Handler: Frame , Signal)
 		local Update = function(Input)
 			local SizeScale = math.clamp((((Input.Position.X) - SlideMain.AbsolutePosition.X) / SlideMain.AbsoluteSize.X), 0, 1);
 			local Main = ((Config.Max - Config.Min) * SizeScale) + Config.Min;
-			local Value = NeverLose:Rounding(Main,Config.Rounding);
+			local Value = NeverLose.Rounding(Main,Config.Rounding);
 			local PositionX = UDim2.fromScale(SizeScale, 1);
 			local Size = ((Value - Config.Min) / (Config.Max - Config.Min)) + 0.02;
 
@@ -3060,8 +3084,7 @@ function NeverLose:RegisiterHandler(Handler: Frame , Signal)
 								Position = UDim2.new(0, 30, 0, 4)
 							})
 
-							-- FIX: was `vs` (undefined), now uses SlowyTween
-							NeverLose.PlayAnimate(Icon , SlowyTween , {
+							NeverLose.PlayAnimate(Icon , vs , {
 								TextTransparency = 0.250
 							})
 
@@ -3247,7 +3270,7 @@ NeverLose.ParseDropdown = LPH_NO_VIRTUALIZE(function(value)
 			if not Out:byte() then
 				Out = 'Select';
 			end
-		end
+		end;
 	else
 		Out = tostring(value or 'Select');
 	end;
@@ -3446,8 +3469,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		BasedFrame.BackgroundTransparency = 1.000
 		BasedFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		BasedFrame.BorderSizePixel = 0
-		-- FIX: reduced base height from 30 to 22 so labels don't reserve dead space
-		BasedFrame.Size = UDim2.new(1, 0, 0, 22)
+		BasedFrame.Size = UDim2.new(1, 0, 0, 30)
 		BasedFrame.ZIndex = LayerIndex + 8
 
 		NeverLose:AddQuery(BasedFrame , Name);
@@ -3458,8 +3480,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		BasedLabel.BackgroundTransparency = 1.000
 		BasedLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		BasedLabel.BorderSizePixel = 0
-		-- FIX: moved label up from Y=6 to Y=3
-		BasedLabel.Position = UDim2.new(0, 11, 0, 3)
+		BasedLabel.Position = UDim2.new(0, 11, 0, 6)
 		BasedLabel.Size = UDim2.new(0,1, 0, 15)
 		BasedLabel.ZIndex = LayerIndex + 9
 		BasedLabel.Font = Enum.Font.GothamMedium
@@ -3503,17 +3524,17 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 
 		local UpdateWarp = LPH_NO_VIRTUALIZE(function()
 			local size = TextService:GetTextSize(BasedLabel.Text , BasedLabel.TextSize , BasedLabel.Font , Vector2.new(math.huge,math.huge));
-			-- FIX: tighter padding, was size.Y + 13
 			NeverLose.PlayAnimate(BasedFrame , SlowyTween , {
-				Size = UDim2.new(1, 0, 0, size.Y + 8);
+				Size = UDim2.new(1, 0, 0, size.Y + 13);
 			})
 
 			BasedLabel.Size = UDim2.new(1, -35, 1, 0)
 			BasedLabel.TextYAlignment = Enum.TextYAlignment.Top;
 		end);
 
-		-- FIX: always run auto-size (was conditional on Warp arg)
-		UpdateWarp();
+		if Warp then
+			UpdateWarp();
+		end;
 
 		local handle = NeverLose:RegisiterHandler(BasedHandler , Signel);
 
@@ -3577,7 +3598,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 
 			BasedLabel.Text = t;
 
-			if oldtxt ~= t then
+			if Warp and oldtxt ~= t then
 				UpdateWarp();
 			end;
 		end;
@@ -3617,8 +3638,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		ButtonFrame.BackgroundTransparency = 1.000
 		ButtonFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		ButtonFrame.BorderSizePixel = 0
-		-- FIX: reduced button height from 30 to 24
-		ButtonFrame.Size = UDim2.new(1, 0, 0, 24)
+		ButtonFrame.Size = UDim2.new(1, 0, 0, 30)
 		ButtonFrame.ZIndex = LayerIndex + 8
 
 		BasedLabel.Name = NeverLose.RandomString();
@@ -3627,8 +3647,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		BasedLabel.BackgroundTransparency = 1.000
 		BasedLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		BasedLabel.BorderSizePixel = 0
-		-- FIX: re-centered label vertically for the smaller frame
-		BasedLabel.Position = UDim2.new(0, 35, 0, 3)
+		BasedLabel.Position = UDim2.new(0, 35, 0, 6)
 		BasedLabel.Size = UDim2.new(0,1, 0, 15)
 		BasedLabel.ZIndex = LayerIndex + 9
 		BasedLabel.Font = Enum.Font.GothamMedium
@@ -3658,8 +3677,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		Icon.BackgroundTransparency = 1.000
 		Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		Icon.BorderSizePixel = 0
-		-- FIX: re-centered icon for the smaller frame
-		Icon.Position = UDim2.new(0, 11, 0, 3)
+		Icon.Position = UDim2.new(0, 11, 0, 5)
 		Icon.Size = UDim2.new(0, 18, 0, 18)
 		Icon.ZIndex = LayerIndex + 9
 		Icon.FontFace = NeverLose.BuiltInBold
@@ -3754,8 +3772,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		UserFrame.BackgroundTransparency = 1.000
 		UserFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		UserFrame.BorderSizePixel = 0
-		-- FIX: reduced user frame height from 60 to 55
-		UserFrame.Size = UDim2.new(1, 0, 0, 55)
+		UserFrame.Size = UDim2.new(1, 0, 0, 60)
 		UserFrame.ZIndex = LayerIndex + 8
 
 		UserLabel.Name = NeverLose.RandomString();
@@ -3764,7 +3781,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		UserLabel.BackgroundTransparency = 1.000
 		UserLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		UserLabel.BorderSizePixel = 0
-		UserLabel.Position = UDim2.new(0, 65, 0, 8)
+		UserLabel.Position = UDim2.new(0, 65, 0, 10)
 		UserLabel.Size = UDim2.new(1, -35, 0, 15)
 		UserLabel.ZIndex = LayerIndex + 9
 		UserLabel.Font = Enum.Font.GothamMedium
@@ -3808,7 +3825,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		UserStatusLabel.BackgroundTransparency = 1.000
 		UserStatusLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		UserStatusLabel.BorderSizePixel = 0
-		UserStatusLabel.Position = UDim2.new(0, 65, 0, 24)
+		UserStatusLabel.Position = UDim2.new(0, 65, 0, 25)
 		UserStatusLabel.Size = UDim2.new(1, -35, 0, 15)
 		UserStatusLabel.ZIndex = LayerIndex + 9
 		UserStatusLabel.Font = Enum.Font.GothamMedium
@@ -3980,6 +3997,8 @@ function NeverLose:CreateWindow(Config)
 			else
 				WindowFrame.Visible = true;
 				WindowFrame.Parent = NeverLose.ScreenGui
+
+
 			end;
 		end;
 	end);
@@ -4715,6 +4734,8 @@ function NeverLose:CreateWindow(Config)
 			if val then
 				Window.Load3DBlock();
 			else
+
+
 				Part.Parent = nil;
 			end;
 
@@ -5066,15 +5087,15 @@ function NeverLose:CreateWindow(Config)
 			UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
 			UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(LPH_NO_VIRTUALIZE(function()
+
+
 				if UIListLayout.AbsoluteContentSize.Y <= 1 then
 					NeverLose.PlayAnimate(SectionFrame , VSlowTween , {
 						Size = UDim2.new(1, -5, 0, 0)
 					})
 				else
-					-- FIX: was +19.5 which actually clipped the last item by ~1.5px
-					-- Now sized exactly to content + 20 (title area) + 1 (line)
 					NeverLose.PlayAnimate(SectionFrame , VSlowTween , {
-						Size = UDim2.new(1, -5, 0, UIListLayout.AbsoluteContentSize.Y + 21)
+						Size = UDim2.new(1, -5, 0, UIListLayout.AbsoluteContentSize.Y + 19.5)
 					})
 				end;
 			end));
