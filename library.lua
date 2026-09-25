@@ -1,5 +1,5 @@
 --[[
-                          nahNeverlose.cc UI Library
+                          Neverlose.cc UI Library
     Author: 4lpaca
 	License: MIT
     Discord: https://arceney.win/discord
@@ -249,67 +249,11 @@ function NeverLose:AddSignal(RBXSignal)
 	return RBXSignal;
 end;
 
--- ============================================================
---  PROPORTIONAL UI SCALING
---  Keeps the design at 640x480 logical units but scales the
---  whole ScreenGui (sidebar + content + fonts) to fit the
---  current viewport. Re-runs on rotation / window resize.
--- ============================================================
-NeverLose.DesignSize = Vector2.new(640, 480);
-NeverLose.UIScale = Instance.new("UIScale");
-NeverLose.UIScale.Parent = GlobalWindow;
-
-local UpdateUIScale = LPH_NO_VIRTUALIZE(function()
-	local vp = workspace.CurrentCamera.ViewportSize;
-	if not vp or vp.X <= 0 or vp.Y <= 0 then return; end;
-
-	local scaleX = vp.X / NeverLose.DesignSize.X;
-	local scaleY = vp.Y / NeverLose.DesignSize.Y;
-
-	-- Fit with a small padding so the window never touches the screen edge
-	local scale = math.min(scaleX, scaleY) * 0.92;
-
-	-- Clamp so it stays readable on tiny screens and doesn't get huge on 4K
-	scale = math.clamp(scale, 0.32, 1.60);
-
-	NeverLose.UIScale.Scale = scale;
-end);
-
-UpdateUIScale();
-
-NeverLose:AddSignal(workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(LPH_NO_VIRTUALIZE(function()
-	UpdateUIScale();
-end)));
-
--- Also update when UserInputService detects device changes / rotation
-NeverLose:AddSignal(UserInputService:GetPropertyChangedSignal("TouchEnabled"):Connect(LPH_NO_VIRTUALIZE(function()
-	UpdateUIScale();
-end)));
--- ============================================================
-function NeverLose:AddQuery(ItemRoot: Frame, Name: string)
-	local Entry = {
+function NeverLose:AddQuery(ItemRoot: Frame , Name : string)
+	table.insert(NeverLose.NameRegisitry , {
 		Root = ItemRoot,
 		Idx = Name,
-		OriginalSize = ItemRoot.Size,
-	};
-
-	table.insert(NeverLose.NameRegisitry, Entry);
-
-	ItemRoot:GetPropertyChangedSignal("Visible"):Connect(function()
-		if ItemRoot.Visible then
-			if Entry.OriginalSize then
-				ItemRoot.Size = Entry.OriginalSize;
-			end
-		else
-			Entry.OriginalSize = ItemRoot.Size;
-			ItemRoot.Size = UDim2.new(
-				ItemRoot.Size.X.Scale,
-				ItemRoot.Size.X.Offset,
-				0,
-				0
-			);
-		end
-	end);
+	});
 end;
 
 function Encryption.new(data: string)
@@ -3899,7 +3843,7 @@ function NeverLose:CreateWindow(Config)
 		Logo = NeverLose.GlobalLogo,
 		Name = "Neverlose",
 		Content = "Counter-Strike 2",
-		Size = NeverLose.Scales.Default,
+		Size = UDim2.new(0, 640, 0, 480),
 		ConfigFolder = "NeverLoseConfigs",
 		Enable3DRenderer = false,
 		Keybind = "Insert"
@@ -3970,6 +3914,33 @@ function NeverLose:CreateWindow(Config)
 	WindowFrame.ClipsDescendants = true
 	WindowFrame.Position = UDim2.new(255, 0, 255, 0)
 	WindowFrame.Size = Window.Size
+
+	-- Responsive UI scaling: keeps the whole window proportional across devices.
+	local ResponsiveScale = Instance.new("UIScale")
+	ResponsiveScale.Name = "ResponsiveScale"
+	ResponsiveScale.Parent = WindowFrame
+
+	local function UpdateResponsiveScale()
+		local viewport = NeverLose.ScreenGui.AbsoluteSize
+		local baseWidth = Window.Size.X.Offset
+		local baseHeight = Window.Size.Y.Offset
+
+		if viewport.X <= 0 or viewport.Y <= 0 or baseWidth <= 0 or baseHeight <= 0 then
+			return
+		end
+
+		local scaleX = viewport.X / (baseWidth * 1.25)
+		local scaleY = viewport.Y / (baseHeight * 1.25)
+		local scale = math.min(scaleX, scaleY)
+
+		ResponsiveScale.Scale = math.clamp(scale, 0.55, 1.25)
+	end
+
+	UpdateResponsiveScale()
+
+	NeverLose:AddSignal(
+		NeverLose.ScreenGui:GetPropertyChangedSignal("AbsoluteSize"):Connect(UpdateResponsiveScale)
+	)
 	WindowFrame.Active = true;
 
 	if not NeverLose.EnabledBlur then
