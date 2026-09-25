@@ -1,5 +1,5 @@
 --[[
-                          ayawNeverlose.cc UI Library
+                          Neverlose.cc UI Library
     Author: 4lpaca
 	License: MIT
     Discord: https://arceney.win/discord
@@ -251,6 +251,9 @@ end;
 
 -- ============================================================
 --  PROPORTIONAL UI SCALING
+--  Keeps the design at 640x480 logical units but scales the
+--  whole ScreenGui (sidebar + content + fonts) to fit the
+--  current viewport. Re-runs on rotation / window resize.
 -- ============================================================
 NeverLose.DesignSize = Vector2.new(640, 480);
 NeverLose.UIScale = Instance.new("UIScale");
@@ -262,14 +265,26 @@ local UpdateUIScale = LPH_NO_VIRTUALIZE(function()
 
 	local scaleX = vp.X / NeverLose.DesignSize.X;
 	local scaleY = vp.Y / NeverLose.DesignSize.Y;
+
+	-- Fit with a small padding so the window never touches the screen edge
 	local scale = math.min(scaleX, scaleY) * 0.92;
+
+	-- Clamp so it stays readable on tiny screens and doesn't get huge on 4K
 	scale = math.clamp(scale, 0.32, 1.60);
+
 	NeverLose.UIScale.Scale = scale;
 end);
 
 UpdateUIScale();
-NeverLose:AddSignal(workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function() UpdateUIScale(); end));
-NeverLose:AddSignal(UserInputService:GetPropertyChangedSignal("TouchEnabled"):Connect(function() UpdateUIScale(); end));
+
+NeverLose:AddSignal(workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(LPH_NO_VIRTUALIZE(function()
+	UpdateUIScale();
+end)));
+
+-- Also update when UserInputService detects device changes / rotation
+NeverLose:AddSignal(UserInputService:GetPropertyChangedSignal("TouchEnabled"):Connect(LPH_NO_VIRTUALIZE(function()
+	UpdateUIScale();
+end)));
 -- ============================================================
 
 function NeverLose:AddQuery(ItemRoot: Frame , Name : string)
@@ -347,6 +362,502 @@ do
 		end))
 	end);
 end;
+
+NeverLose.LoadIcon = LPH_NO_VIRTUALIZE(function()
+	NeverLose.RobloxIcon = {
+		["3d-cube-arrow-left"] = "3d-cube-arrow-left",
+		["amazon"] = "amazon",
+		["arm-left"] = "arm-left",
+		["arm-right"] = "arm-right",
+		["arrow-curl-to-left"] = "arrow-curl-to-left",
+		["arrow-curl-to-right"] = "arrow-curl-to-right",
+		["arrow-down-to-line"] = "arrow-down-to-line",
+		["arrow-large-down"] = "arrow-large-down",
+		["arrow-large-left"] = "arrow-large-left",
+		["arrow-large-right"] = "arrow-large-right",
+		["arrow-large-up"] = "arrow-large-up",
+		["arrow-right-from-portrait-rectangle"] = "arrow-right-from-portrait-rectangle",
+		["arrow-right-to-portrait-rectangle"] = "arrow-right-to-portrait-rectangle",
+		["arrow-rotate-down-dashed"] = "arrow-rotate-down-dashed",
+		["arrow-rotate-right"] = "arrow-rotate-right",
+		["arrow-rotate-right-dashed"] = "arrow-rotate-right-dashed",
+		["arrow-small-down"] = "arrow-small-down",
+		["arrow-small-left"] = "arrow-small-left",
+		["arrow-small-right"] = "arrow-small-right",
+		["arrow-small-up"] = "arrow-small-up",
+		["arrow-spin-clockwise"] = "arrow-spin-clockwise",
+		["arrow-spin-clockwise-10"] = "arrow-spin-clockwise-10",
+		["arrow-spin-clockwise-15"] = "arrow-spin-clockwise-15",
+		["arrow-spin-clockwise-30"] = "arrow-spin-clockwise-30",
+		["arrow-spin-counter-clockwise-10"] = "arrow-spin-counter-clockwise-10",
+		["arrow-spin-counter-clockwise-15"] = "arrow-spin-counter-clockwise-15",
+		["arrow-spin-counter-clockwise-30"] = "arrow-spin-counter-clockwise-30",
+		["arrow-thick-to-left"] = "arrow-thick-to-left",
+		["arrow-thick-to-right"] = "arrow-thick-to-right",
+		["arrow-up-from-landscape-rectangle"] = "arrow-up-from-landscape-rectangle",
+		["arrow-up-right-from-square"] = "arrow-up-right-from-square",
+		["arrow-wide-short-down"] = "arrow-wide-short-down",
+		["arrow-wide-short-left"] = "arrow-wide-short-left",
+		["arrow-wide-short-right"] = "arrow-wide-short-right",
+		["arrow-wide-short-up"] = "arrow-wide-short-up",
+		["arrows-small-directional"] = "arrows-small-directional",
+		["audio-wave-dotted-line"] = "audio-wave-dotted-line",
+		["backpack"] = "backpack",
+		["beard"] = "beard",
+		["bell"] = "bell",
+		["bell-clock"] = "bell-clock",
+		["bell-plus"] = "bell-plus",
+		["bell-slash"] = "bell-slash",
+		["belt"] = "belt",
+		["binoculars"] = "binoculars",
+		["book-closed"] = "book-closed",
+		["bookmark"] = "bookmark",
+		["bow-tie"] = "bow-tie",
+		["building-store"] = "building-store",
+		["bullet-flying"] = "bullet-flying",
+		["butterfly-wings"] = "butterfly-wings",
+		["calendar"] = "calendar",
+		["calendar-plus"] = "calendar-plus",
+		["calendar-star"] = "calendar-star",
+		["camera-small"] = "camera-small",
+		["caret-small-down"] = "caret-small-down",
+		["caret-small-left"] = "caret-small-left",
+		["caret-small-right"] = "caret-small-right",
+		["caret-small-up"] = "caret-small-up",
+		["chain-link"] = "chain-link",
+		["chart-four-vertical-bars"] = "chart-four-vertical-bars",
+		["chart-line"] = "chart-line",
+		["chart-pie"] = "chart-pie",
+		["chart-scatter-plot"] = "chart-scatter-plot",
+		["chart-three-vertical-bars"] = "chart-three-vertical-bars",
+		["check"] = "check",
+		["check-large"] = "check-large",
+		["check-small"] = "check-small",
+		["chevron-large-down"] = "chevron-large-down",
+		["chevron-large-down-to-line"] = "chevron-large-down-to-line",
+		["chevron-large-left"] = "chevron-large-left",
+		["chevron-large-left-to-line"] = "chevron-large-left-to-line",
+		["chevron-large-right"] = "chevron-large-right",
+		["chevron-large-right-to-line"] = "chevron-large-right-to-line",
+		["chevron-large-up"] = "chevron-large-up",
+		["chevron-large-up-to-line"] = "chevron-large-up-to-line",
+		["chevron-small-down"] = "chevron-small-down",
+		["chevron-small-down-to-line"] = "chevron-small-down-to-line",
+		["chevron-small-left"] = "chevron-small-left",
+		["chevron-small-left-to-line"] = "chevron-small-left-to-line",
+		["chevron-small-right"] = "chevron-small-right",
+		["chevron-small-right-to-line"] = "chevron-small-right-to-line",
+		["chevron-small-up"] = "chevron-small-up",
+		["chevron-small-up-to-line"] = "chevron-small-up-to-line",
+		["circle-check"] = "circle-check",
+		["circle-i"] = "circle-i",
+		["circle-minus"] = "circle-minus",
+		["circle-person"] = "circle-person",
+		["circle-person-three-horizontal-bars-wrapping-right"] = "circle-person-three-horizontal-bars-wrapping-right",
+		["circle-play"] = "circle-play",
+		["circle-plus"] = "circle-plus",
+		["circle-question"] = "circle-question",
+		["circle-slash"] = "circle-slash",
+		["circle-star"] = "circle-star",
+		["circle-three-dots-horizontal"] = "circle-three-dots-horizontal",
+		["circle-three-dots-vertical"] = "circle-three-dots-vertical",
+		["circle-x"] = "circle-x",
+		["clock"] = "clock",
+		["clock-dashed"] = "clock-dashed",
+		["clock-spin-reverse"] = "clock-spin-reverse",
+		["clock-spin-reverse-dashed"] = "clock-spin-reverse-dashed",
+		["clothes-hanger"] = "clothes-hanger",
+		["cloud"] = "cloud",
+		["cloud-arrow-down"] = "cloud-arrow-down",
+		["code"] = "code",
+		["compact-makeup-brush"] = "compact-makeup-brush",
+		["compass"] = "compass",
+		["controller-with-cog"] = "controller-with-cog",
+		["crop"] = "crop",
+		["crosshairs"] = "crosshairs",
+		["crosshairs-slash"] = "crosshairs-slash",
+		["cube-vertexes"] = "cube-vertexes",
+		["curved-rectangle-megaphone"] = "curved-rectangle-megaphone",
+		["diagonal-line-pattern"] = "diagonal-line-pattern",
+		["diagonal-line-pattern-sticker"] = "diagonal-line-pattern-sticker",
+		["diamond-simplified"] = "diamond-simplified",
+		["discord"] = "discord",
+		["disguise-nose-glasses"] = "disguise-nose-glasses",
+		["document-circle-slash"] = "document-circle-slash",
+		["document-list-heart"] = "document-list-heart",
+		["door-open-arrow-to-bottom-right"] = "door-open-arrow-to-bottom-right",
+		["dress"] = "dress",
+		["dual-arrows-horizontal"] = "dual-arrows-horizontal",
+		["dual-arrows-to-corners"] = "dual-arrows-to-corners",
+		["dual-arrows-vertical"] = "dual-arrows-vertical",
+		["envelope"] = "envelope",
+		["eraser"] = "eraser",
+		["eye"] = "eye",
+		["eye-slash"] = "eye-slash",
+		["eye-with-eyeliner"] = "eye-with-eyeliner",
+		["eyebrows"] = "eyebrows",
+		["eyelashes"] = "eyelashes",
+		["face-winking"] = "face-winking",
+		["facebook"] = "facebook",
+		["file-box"] = "file-box",
+		["fingerprint"] = "fingerprint",
+		["flag"] = "flag",
+		["flame"] = "flame",
+		["folder"] = "folder",
+		["fountain-pen-nib"] = "fountain-pen-nib",
+		["four-bars-horizontal-center-aligned"] = "four-bars-horizontal-center-aligned",
+		["four-bars-horizontal-chevron-left"] = "four-bars-horizontal-chevron-left",
+		["four-bars-horizontal-chevron-right"] = "four-bars-horizontal-chevron-right",
+		["four-bars-horizontal-justified-aligned"] = "four-bars-horizontal-justified-aligned",
+		["four-bars-horizontal-left-aligned"] = "four-bars-horizontal-left-aligned",
+		["four-bars-horizontal-right-aligned"] = "four-bars-horizontal-right-aligned",
+		["frame-bubble-slash"] = "frame-bubble-slash",
+		["frame-bubble-soundwave"] = "frame-bubble-soundwave",
+		["frame-camera"] = "frame-camera",
+		["frame-camera-center"] = "frame-camera-center",
+		["frame-collapsed"] = "frame-collapsed",
+		["frame-corners"] = "frame-corners",
+		["frame-expanded"] = "frame-expanded",
+		["frame-face"] = "frame-face",
+		["frame-person-torso"] = "frame-person-torso",
+		["frame-record"] = "frame-record",
+		["frame-single-bar-horizontal"] = "frame-single-bar-horizontal",
+		["frame-soundwave"] = "frame-soundwave",
+		["frame-video-camera"] = "frame-video-camera",
+		["gear"] = "gear",
+		["generic-dpad"] = "generic-dpad",
+		["gift-box"] = "gift-box",
+		["gift-card"] = "gift-card",
+		["glasses"] = "glasses",
+		["globe-detailed"] = "globe-detailed",
+		["globe-simplified"] = "globe-simplified",
+		["globe-simplipfied-speech-bubble"] = "globe-simplipfied-speech-bubble",
+		["grid"] = "grid",
+		["guilded"] = "guilded",
+		["hack-week"] = "hack-week",
+		["hammer-code"] = "hammer-code",
+		["hand-curved-arrow-left"] = "hand-curved-arrow-left",
+		["hand-dual-arrows"] = "hand-dual-arrows",
+		["hand-ellipse"] = "hand-ellipse",
+		["hand-half-ellipse"] = "hand-half-ellipse",
+		["hand-two-arrows-horizontal"] = "hand-two-arrows-horizontal",
+		["hashtag"] = "hashtag",
+		["hat-fedora"] = "hat-fedora",
+		["hat-toque"] = "hat-toque",
+		["head-blank"] = "head-blank",
+		["head-blush"] = "head-blush",
+		["head-female"] = "head-female",
+		["head-freckles"] = "head-freckles",
+		["head-lips"] = "head-lips",
+		["head-male"] = "head-male",
+		["headphones"] = "headphones",
+		["headphones-arrow-up"] = "headphones-arrow-up",
+		["headphones-arrow-up-lock"] = "headphones-arrow-up-lock",
+		["headphones-slash"] = "headphones-slash",
+		["headphones-x"] = "headphones-x",
+		["headphones-x-lock"] = "headphones-x-lock",
+		["heart"] = "heart",
+		["house"] = "house",
+		["image"] = "image",
+		["image-stacked"] = "image-stacked",
+		["instagram"] = "instagram",
+		["jacket"] = "jacket",
+		["key"] = "key",
+		["key-alt"] = "key-alt",
+		["key-apostrophe"] = "key-apostrophe",
+		["key-arrow-down"] = "key-arrow-down",
+		["key-arrow-right"] = "key-arrow-right",
+		["key-arrow-up"] = "key-arrow-up",
+		["key-asterisk"] = "key-asterisk",
+		["key-backspace"] = "key-backspace",
+		["key-caps-lock"] = "key-caps-lock",
+		["key-caret"] = "key-caret",
+		["key-comma"] = "key-comma",
+		["key-command"] = "key-command",
+		["key-control"] = "key-control",
+		["key-grave-accent"] = "key-grave-accent",
+		["key-period"] = "key-period",
+		["key-return"] = "key-return",
+		["key-shift"] = "key-shift",
+		["key-space"] = "key-space",
+		["key-tab"] = "key-tab",
+		["language-characters"] = "language-characters",
+		["leg-left"] = "leg-left",
+		["leg-right"] = "leg-right",
+		["lightning-bolt"] = "lightning-bolt",
+		["linkedin"] = "linkedin",
+		["lips"] = "lips",
+		["lipstick"] = "lipstick",
+		["list-bulleted"] = "list-bulleted",
+		["location-pin"] = "location-pin",
+		["location-pin-map"] = "location-pin-map",
+		["lock-closed"] = "lock-closed",
+		["lollipop"] = "lollipop",
+		["magnifying-glass"] = "magnifying-glass",
+		["magnifying-glass-minus"] = "magnifying-glass-minus",
+		["magnifying-glass-plus"] = "magnifying-glass-plus",
+		["mascara"] = "mascara",
+		["megaphone"] = "megaphone",
+		["memory-card"] = "memory-card",
+		["messenger"] = "messenger",
+		["microphone"] = "microphone",
+		["microphone-slash"] = "microphone-slash",
+		["microphone-text-box"] = "microphone-text-box",
+		["microphone-triangle-exclamation"] = "microphone-triangle-exclamation",
+		["minus"] = "minus",
+		["minus-small"] = "minus-small",
+		["mirror-standing"] = "mirror-standing",
+		["moments"] = "moments",
+		["moon"] = "moon",
+		["mouse-button-left"] = "mouse-button-left",
+		["mouse-button-right"] = "mouse-button-right",
+		["mouse-scrollwheel"] = "mouse-scrollwheel",
+		["music-note"] = "music-note",
+		["nebula"] = "nebula",
+		["necklace"] = "necklace",
+		["nine-dots-grid"] = "nine-dots-grid",
+		["ninja"] = "ninja",
+		["nose"] = "nose",
+		["page"] = "page",
+		["paint-brush"] = "paint-brush",
+		["paint-bucket"] = "paint-bucket",
+		["pants"] = "pants",
+		["pants-2d-text"] = "pants-2d-text",
+		["paper-airplane"] = "paper-airplane",
+		["parrot"] = "parrot",
+		["pause-large"] = "pause-large",
+		["pause-small"] = "pause-small",
+		["pencil"] = "pencil",
+		["pencil-square"] = "pencil-square",
+		["person"] = "person",
+		["person-arrow-from-bottom-right"] = "person-arrow-from-bottom-right",
+		["person-check"] = "person-check",
+		["person-circle-slash"] = "person-circle-slash",
+		["person-climbing"] = "person-climbing",
+		["person-clock"] = "person-clock",
+		["person-falling"] = "person-falling",
+		["person-graduate"] = "person-graduate",
+		["person-jumping"] = "person-jumping",
+		["person-magnifying-glass"] = "person-magnifying-glass",
+		["person-photo-camera"] = "person-photo-camera",
+		["person-play"] = "person-play",
+		["person-play-clock"] = "person-play-clock",
+		["person-plus"] = "person-plus",
+		["person-racing"] = "person-racing",
+		["person-running"] = "person-running",
+		["person-standing"] = "person-standing",
+		["person-standing-arrow-reverse"] = "person-standing-arrow-reverse",
+		["person-standing-dual-arrows-vertical"] = "person-standing-dual-arrows-vertical",
+		["person-standing-gear"] = "person-standing-gear",
+		["person-swimming"] = "person-swimming",
+		["person-teleport"] = "person-teleport",
+		["person-trash-can"] = "person-trash-can",
+		["person-walking"] = "person-walking",
+		["person-with-smaller-person"] = "person-with-smaller-person",
+		["phone"] = "phone",
+		["phone-down"] = "phone-down",
+		["phone-plus"] = "phone-plus",
+		["phone-volume"] = "phone-volume",
+		["phone-x"] = "phone-x",
+		["photo-camera"] = "photo-camera",
+		["photo-camera-face"] = "photo-camera-face",
+		["photo-camera-slash"] = "photo-camera-slash",
+		["picture-in-picture"] = "picture-in-picture",
+		["pig"] = "pig",
+		["pin"] = "pin",
+		["pin-slash"] = "pin-slash",
+		["play-large"] = "play-large",
+		["play-small"] = "play-small",
+		["plus-large"] = "plus-large",
+		["plus-small"] = "plus-small",
+		["premium"] = "premium",
+		["ps-circle"] = "ps-circle",
+		["ps-dpad-down"] = "ps-dpad-down",
+		["ps-dpad-left"] = "ps-dpad-left",
+		["ps-dpad-right"] = "ps-dpad-right",
+		["ps-dpad-up"] = "ps-dpad-up",
+		["ps-l1"] = "ps-l1",
+		["ps-l2"] = "ps-l2",
+		["ps-l3"] = "ps-l3",
+		["ps-r1"] = "ps-r1",
+		["ps-r2"] = "ps-r2",
+		["ps-r3"] = "ps-r3",
+		["ps-square"] = "ps-square",
+		["ps-stick-left"] = "ps-stick-left",
+		["ps-stick-right"] = "ps-stick-right",
+		["ps-triagle"] = "ps-triagle",
+		["ps-x"] = "ps-x",
+		["ps4-options"] = "ps4-options",
+		["ps4-share"] = "ps4-share",
+		["ps4-touchpad"] = "ps4-touchpad",
+		["ps5-options"] = "ps5-options",
+		["ps5-share"] = "ps5-share",
+		["ps5-touchpad"] = "ps5-touchpad",
+		["pumpkin"] = "pumpkin",
+		["purse"] = "purse",
+		["rectangle-list"] = "rectangle-list",
+		["rectangle-numbers-counting"] = "rectangle-numbers-counting",
+		["rectangle-person-with-three-horizontal-lines"] = "rectangle-person-with-three-horizontal-lines",
+		["robux"] = "robux",
+		["rosette-seven-point"] = "rosette-seven-point",
+		["rosette-ten-point"] = "rosette-ten-point",
+		["seven-point-rosette"] = "seven-point-rosette",
+		["shield-check"] = "shield-check",
+		["shield-lock"] = "shield-lock",
+		["shirt"] = "shirt",
+		["shirt-2d-text"] = "shirt-2d-text",
+		["shirt-pants"] = "shirt-pants",
+		["shoe-left"] = "shoe-left",
+		["shoe-right"] = "shoe-right",
+		["shopping-basket"] = "shopping-basket",
+		["shopping-basket-check"] = "shopping-basket-check",
+		["shopping-cart"] = "shopping-cart",
+		["shorts"] = "shorts",
+		["sidebar"] = "sidebar",
+		["signal-exclamation"] = "signal-exclamation",
+		["six-dots-two-column-grid"] = "six-dots-two-column-grid",
+		["skip-end-large"] = "skip-end-large",
+		["skip-end-small"] = "skip-end-small",
+		["skip-next-large"] = "skip-next-large",
+		["skip-next-small"] = "skip-next-small",
+		["skip-previous-large"] = "skip-previous-large",
+		["skip-previous-small"] = "skip-previous-small",
+		["skip-start-large"] = "skip-start-large",
+		["skip-start-small"] = "skip-start-small",
+		["smartphone-portrait"] = "smartphone-portrait",
+		["speaker"] = "speaker",
+		["speaker-slash"] = "speaker-slash",
+		["speaker-triangle-exclamation"] = "speaker-triangle-exclamation",
+		["speaker-x"] = "speaker-x",
+		["speech-bubble-align-center"] = "speech-bubble-align-center",
+		["speech-bubble-align-left"] = "speech-bubble-align-left",
+		["speech-bubble-exclamation"] = "speech-bubble-exclamation",
+		["speech-bubble-round"] = "speech-bubble-round",
+		["square-bone"] = "square-bone",
+		["square-books"] = "square-books",
+		["square-check"] = "square-check",
+		["square-code"] = "square-code",
+		["square-dashed-person-standing"] = "square-dashed-person-standing",
+		["square-dual-arrows-horizontal"] = "square-dual-arrows-horizontal",
+		["square-dual-arrows-to-corner"] = "square-dual-arrows-to-corner",
+		["square-face-sound"] = "square-face-sound",
+		["square-face-waving-hand"] = "square-face-waving-hand",
+		["square-face-winking"] = "square-face-winking",
+		["square-minus"] = "square-minus",
+		["square-person"] = "square-person",
+		["squares-grid-plus"] = "squares-grid-plus",
+		["squares-grid-qr"] = "squares-grid-qr",
+		["stacked-squares-arrow-down-left"] = "stacked-squares-arrow-down-left",
+		["stacked-squares-arrow-up-right"] = "stacked-squares-arrow-up-right",
+		["stacked-squares-plus"] = "stacked-squares-plus",
+		["star"] = "star",
+		["stop-large"] = "stop-large",
+		["stop-small"] = "stop-small",
+		["studio"] = "studio",
+		["sun"] = "sun",
+		["sweater"] = "sweater",
+		["sword"] = "sword",
+		["tag-sparkle"] = "tag-sparkle",
+		["teletype"] = "teletype",
+		["tencent-qq"] = "tencent-qq",
+		["text-b-bold"] = "text-b-bold",
+		["text-box-microphone"] = "text-box-microphone",
+		["text-h-subscript-1"] = "text-h-subscript-1",
+		["text-h-subscript-2"] = "text-h-subscript-2",
+		["text-h-subscript-3"] = "text-h-subscript-3",
+		["text-i-italic"] = "text-i-italic",
+		["text-s-strikethrough"] = "text-s-strikethrough",
+		["text-u-underline"] = "text-u-underline",
+		["text-uppercase-a-lowercase-a"] = "text-uppercase-a-lowercase-a",
+		["text-x-subscript-2"] = "text-x-subscript-2",
+		["text-x-superscript-2"] = "text-x-superscript-2",
+		["three-bars-horizontal"] = "three-bars-horizontal",
+		["three-bars-horizontal-chevron-left"] = "three-bars-horizontal-chevron-left",
+		["three-bars-horizontal-narrowing"] = "three-bars-horizontal-narrowing",
+		["three-bars-horizontal-triangles-vertical"] = "three-bars-horizontal-triangles-vertical",
+		["three-bars-vertical-triangles-horizontal"] = "three-bars-vertical-triangles-horizontal",
+		["three-chevrons-enlarging-down"] = "three-chevrons-enlarging-down",
+		["three-chevrons-enlarging-up"] = "three-chevrons-enlarging-up",
+		["three-dots-horizontal"] = "three-dots-horizontal",
+		["three-dots-vertical"] = "three-dots-vertical",
+		["three-horizontal-bars-wrapping-right"] = "three-horizontal-bars-wrapping-right",
+		["three-people"] = "three-people",
+		["three-ring-note"] = "three-ring-note",
+		["three-sliders-horizontal"] = "three-sliders-horizontal",
+		["three-stacked-squares-tilted"] = "three-stacked-squares-tilted",
+		["thumb-down"] = "thumb-down",
+		["thumb-up"] = "thumb-up",
+		["tik-tok"] = "tik-tok",
+		["tilt"] = "tilt",
+		["torso"] = "torso",
+		["trash-can"] = "trash-can",
+		["triangle-exclamation"] = "triangle-exclamation",
+		["trophy"] = "trophy",
+		["tshirt"] = "tshirt",
+		["tshirt-2d-text"] = "tshirt-2d-text",
+		["tshirt-dual-arrows"] = "tshirt-dual-arrows",
+		["twitch"] = "twitch",
+		["twitter"] = "twitter",
+		["two-arrows-down-and-up"] = "two-arrows-down-and-up",
+		["two-arrows-from-center"] = "two-arrows-from-center",
+		["two-arrows-left-right"] = "two-arrows-left-right",
+		["two-arrows-loop-clockwise"] = "two-arrows-loop-clockwise",
+		["two-arrows-loop-clockwise-1"] = "two-arrows-loop-clockwise-1",
+		["two-arrows-loop-clockwise-infinity"] = "two-arrows-loop-clockwise-infinity",
+		["two-arrows-spin-clockwise"] = "two-arrows-spin-clockwise",
+		["two-arrows-spin-clockwise-plus"] = "two-arrows-spin-clockwise-plus",
+		["two-arrows-switch-right"] = "two-arrows-switch-right",
+		["two-arrows-to-center"] = "two-arrows-to-center",
+		["two-folders"] = "two-folders",
+		["two-location-pins-connecting-arrow"] = "two-location-pins-connecting-arrow",
+		["two-makeup-brushes"] = "two-makeup-brushes",
+		["two-people"] = "two-people",
+		["two-people-speech-bubble"] = "two-people-speech-bubble",
+		["two-stacked-squares"] = "two-stacked-squares",
+		["two-switches-horizontal"] = "two-switches-horizontal",
+		["verified-backplate"] = "verified-backplate",
+		["verified-check"] = "verified-check",
+		["verified-mono"] = "verified-mono",
+		["video-camera"] = "video-camera",
+		["video-camera-arrow-to-bottom-left"] = "video-camera-arrow-to-bottom-left",
+		["video-camera-arrow-to-top-right"] = "video-camera-arrow-to-top-right",
+		["video-camera-slash"] = "video-camera-slash",
+		["video-camera-triangle-exclamation"] = "video-camera-triangle-exclamation",
+		["video-camera-x"] = "video-camera-x",
+		["wallet"] = "wallet",
+		["we-chat"] = "we-chat",
+		["whatsapp"] = "whatsapp",
+		["x"] = "x",
+		["x-small"] = "x-small",
+		["xbox-a"] = "xbox-a",
+		["xbox-a-pressed"] = "xbox-a-pressed",
+		["xbox-a-unpressed"] = "xbox-a-unpressed",
+		["xbox-b"] = "xbox-b",
+		["xbox-dpad"] = "xbox-dpad",
+		["xbox-dpad-down"] = "xbox-dpad-down",
+		["xbox-dpad-left"] = "xbox-dpad-left",
+		["xbox-dpad-right"] = "xbox-dpad-right",
+		["xbox-dpad-up"] = "xbox-dpad-up",
+		["xbox-lb"] = "xbox-lb",
+		["xbox-lt"] = "xbox-lt",
+		["xbox-menu"] = "xbox-menu",
+		["xbox-rb"] = "xbox-rb",
+		["xbox-rt"] = "xbox-rt",
+		["xbox-stick-left"] = "xbox-stick-left",
+		["xbox-stick-left-directional"] = "xbox-stick-left-directional",
+		["xbox-stick-left-horizontal"] = "xbox-stick-left-horizontal",
+		["xbox-stick-left-vertical"] = "xbox-stick-left-vertical",
+		["xbox-stick-right"] = "xbox-stick-right",
+		["xbox-stick-right-directional"] = "xbox-stick-right-directional",
+		["xbox-stick-right-horizontal"] = "xbox-stick-right-horizontal",
+		["xbox-stick-right-vertical"] = "xbox-stick-right-vertical",
+		["xbox-view"] = "xbox-view",
+		["xbox-x"] = "xbox-x",
+		["xbox-y"] = "xbox-y",
+		["xr-headset"] = "xr-headset",
+		["youtube"] = "youtube"
+	};
+end);
 
 NeverLose.IsMouseOverFrame = LPH_NO_VIRTUALIZE(function(self , Frame)
 	if not Frame then
@@ -951,7 +1462,7 @@ function NeverLose:CreateColorPicker(HandleFrame: Frame)
 	SaViMap.Position = UDim2.new(0.5, 0, 0, 5)
 	SaViMap.Size = UDim2.new(0, 185, 0, 185)
 	SaViMap.ZIndex = ZIndex + 126
-	SaViMap.Image = NeverLose.ImageColorMapping
+	SaViMap.Image = NeverLose.ImageColorMapping -- UNSAFE IMAGE
 
 	UICorner_2.CornerRadius = UDim.new(0, 5)
 	UICorner_2.Parent = SaViMap
@@ -1537,7 +2048,7 @@ function NeverLose:RegisiterHandler(Handler: Frame , Signal)
 			local OutVal = NeverLose:ParseInput(ValueLabel.Text , true);
 			if OutVal then
 				local rx = math.clamp(OutVal , Config.Min , Config.Max);
-				local Value = NeverLose:Rounding(rx,Config.Rounding);
+				local Value = NeverLose.Rounding(rx,Config.Rounding);
 
 				if Value then
 					Config.Default = Value;
@@ -1619,7 +2130,7 @@ function NeverLose:RegisiterHandler(Handler: Frame , Signal)
 		local Update = function(Input)
 			local SizeScale = math.clamp((((Input.Position.X) - SlideMain.AbsolutePosition.X) / SlideMain.AbsoluteSize.X), 0, 1);
 			local Main = ((Config.Max - Config.Min) * SizeScale) + Config.Min;
-			local Value = NeverLose:Rounding(Main,Config.Rounding);
+			local Value = NeverLose.Rounding(Main,Config.Rounding);
 			local PositionX = UDim2.fromScale(SizeScale, 1);
 			local Size = ((Value - Config.Min) / (Config.Max - Config.Min)) + 0.02;
 
@@ -1630,6 +2141,7 @@ function NeverLose:RegisiterHandler(Handler: Frame , Signal)
 			}):Play();
 
 			LoadText()
+
 
 			Config.Callback(Value)
 		end;
@@ -2554,7 +3066,7 @@ function NeverLose:RegisiterHandler(Handler: Frame , Signal)
 								Position = UDim2.new(0, 30, 0, 4)
 							})
 
-							NeverLose.PlayAnimate(Icon , VSlowTween , {
+							NeverLose.PlayAnimate(Icon , vs , {
 								TextTransparency = 0.250
 							})
 
@@ -2919,7 +3431,7 @@ function NeverLose:CreateToolTips(Container: Frame , Name: string , Content: str
 	end)))
 
 	return ToolTip;
-end);
+end;
 
 function NeverLose:RegisiterItem(Frame: Frame , Signel)
 	local idx = {};
@@ -2939,7 +3451,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		BasedFrame.BackgroundTransparency = 1.000
 		BasedFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		BasedFrame.BorderSizePixel = 0
-		BasedFrame.Size = UDim2.new(1, 0, 0, 22)
+		BasedFrame.Size = UDim2.new(1, 0, 0, 30)
 		BasedFrame.ZIndex = LayerIndex + 8
 
 		NeverLose:AddQuery(BasedFrame , Name);
@@ -2950,7 +3462,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		BasedLabel.BackgroundTransparency = 1.000
 		BasedLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		BasedLabel.BorderSizePixel = 0
-		BasedLabel.Position = UDim2.new(0, 11, 0, 4)
+		BasedLabel.Position = UDim2.new(0, 11, 0, 6)
 		BasedLabel.Size = UDim2.new(0,1, 0, 15)
 		BasedLabel.ZIndex = LayerIndex + 9
 		BasedLabel.Font = Enum.Font.GothamMedium
@@ -2979,7 +3491,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		BasedHandler.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		BasedHandler.BorderSizePixel = 0
 		BasedHandler.Position = UDim2.new(1, -11, 0, 2)
-		BasedHandler.Size = UDim2.new(1, -20, 0, 18)
+		BasedHandler.Size = UDim2.new(1, -20, 0, 25)
 		BasedHandler.ZIndex = LayerIndex + 12
 
 		UIListLayout.Parent = BasedHandler
@@ -3108,7 +3620,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		ButtonFrame.BackgroundTransparency = 1.000
 		ButtonFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		ButtonFrame.BorderSizePixel = 0
-		ButtonFrame.Size = UDim2.new(1, 0, 0, 22)
+		ButtonFrame.Size = UDim2.new(1, 0, 0, 30)
 		ButtonFrame.ZIndex = LayerIndex + 8
 
 		BasedLabel.Name = NeverLose.RandomString();
@@ -3117,7 +3629,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		BasedLabel.BackgroundTransparency = 1.000
 		BasedLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		BasedLabel.BorderSizePixel = 0
-		BasedLabel.Position = UDim2.new(0, 35, 0, 4)
+		BasedLabel.Position = UDim2.new(0, 35, 0, 6)
 		BasedLabel.Size = UDim2.new(0,1, 0, 15)
 		BasedLabel.ZIndex = LayerIndex + 9
 		BasedLabel.Font = Enum.Font.GothamMedium
@@ -3147,7 +3659,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		Icon.BackgroundTransparency = 1.000
 		Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		Icon.BorderSizePixel = 0
-		Icon.Position = UDim2.new(0, 11, 0, 2)
+		Icon.Position = UDim2.new(0, 11, 0, 5)
 		Icon.Size = UDim2.new(0, 18, 0, 18)
 		Icon.ZIndex = LayerIndex + 9
 		Icon.FontFace = NeverLose.BuiltInBold
@@ -4542,7 +5054,7 @@ function NeverLose:CreateWindow(Config)
 			SectionHandler.BorderSizePixel = 0
 			SectionHandler.ClipsDescendants = true
 			SectionHandler.Position = UDim2.new(0.5, 0, 0, 20)
-			SectionHandler.Size = UDim2.new(1, -10, 1, -18)
+			SectionHandler.Size = UDim2.new(1, -10, 1, -21)
 			SectionHandler.ZIndex = 9
 
 			UIStroke.Transparency = 0.650
@@ -4555,9 +5067,10 @@ function NeverLose:CreateWindow(Config)
 			UIListLayout.Parent = SectionHandler
 			UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 			UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-			UIListLayout.Padding = UDim.new(0, 2)
 
 			UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(LPH_NO_VIRTUALIZE(function()
+
+
 				if UIListLayout.AbsoluteContentSize.Y <= 1 then
 					NeverLose.PlayAnimate(SectionFrame , VSlowTween , {
 						Size = UDim2.new(1, -5, 0, 0)
